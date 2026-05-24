@@ -1,7 +1,18 @@
 """
-Created on Sunday June 13 2021
-@author: Neeraj
+Smart Attendance System
+=======================
 
+This script builds a simple Tkinter-based desktop application that:
+- captures student details and face encodings,
+- performs live face recognition using OpenCV and face_recognition,
+- stores attendance data in an SQLite database,
+- optionally sends the database file by email.
+
+The code is organized around a few main workflows:
+1. Email export of the attendance database
+2. Face enrollment and encoding
+3. Live attendance capture
+4. Database creation and reset helpers
 """
 from tkinter import*
 try:
@@ -30,12 +41,19 @@ import time
 import cv2
 import os
  
-ctypes.windll.shcore.SetProcessDpiAwareness(1) # it increase the window clearity
+# Ensure the folders used for enrollment and face encodings exist before the app starts.
+for folder_name in ("clicked_photo", "face_encoding"):
+    os.makedirs(folder_name, exist_ok=True)
+
+# Improve Windows display clarity for the Tkinter window.
+ctypes.windll.shcore.SetProcessDpiAwareness(1)
+
+# Create the main GUI window and load the application icon.
 root = Tk()
 photo = PhotoImage(file = "icon/icon.png")
-root.iconphoto(False, photo) # set the icon to the window
+root.iconphoto(False, photo)
 root.title('Smart Attendance System(author : Preeti)')
-#root.attributes('-fullscreen', True) # it turn screen in full mode
+#root.attributes('-fullscreen', True) # Uncomment to run in full-screen mode.
 
 root.bind("<Escape>", exit) #press escape to exit window
 
@@ -59,6 +77,7 @@ lbl16.place(x=145,y=410)
 
 
 ########################### mail ###########################################################
+# Send the current SQLite attendance database as an email attachment.
 def send_an_email():
             me = '##write your mail id##'     # enter your email id
             toaddr = mail_id                  # email id of person to send the mail      
@@ -96,6 +115,7 @@ def send_an_email():
 ###############################################################################################
                     
 
+# Save the recipient email address entered by the user and show the send button.
 def setTextInput1():
     global mail_id,lbl4,btn9,lbl14
         
@@ -132,6 +152,7 @@ btn3.place(x=1500, y=810)
 
 
 ##################################### enroll the student using face capture ##################
+# Load stored face encodings and perform live recognition against the webcam feed.
 def Start():
         face_encoding='face_encoding/'
 
@@ -244,7 +265,7 @@ def Start():
 ###############################################################################################
 
 
-          
+# Capture student details and create a face encoding from a live webcam snapshot.
 def Capture():
     global lbl4,lbl5,lbl6,lbl7,lbl8,lbl9
     lbl4=Label(root,text ="Enter name of person",fg ='black' , font =("times new roman", 25),bg='light blue')
@@ -263,7 +284,7 @@ def Capture():
     lbl8.place(x=145,y=765)
             
 
-    
+    # Read the student form values and store them for the later capture step.
     def setTextInput():
         global name_id,c,d,j,lbl9,lbl10
         
@@ -308,6 +329,7 @@ def Capture():
     btn2 = Button(root, text = 'save!',bg='yellow', bd = '12',command = setTextInput)# this button save student information 
     btn2.place(x=430,y=700)
     
+    # Countdown, capture a photo, encode it, and save the student record.
     def Run():
         timer = int(5) # timer
         cap = cv2.VideoCapture(0) 
@@ -387,6 +409,7 @@ btn1.place(x=50, y=340)
 
 
 ############################## generate database ###################
+# Prompt for the database creation password and create the tables when it matches.
 def setTextInput2():
     global lbl18
     lbl18=Label(root,text ="Enter password",fg ='red3' , font =("times new roman", 30),bg='light blue')
@@ -423,6 +446,7 @@ btn7.place(x=50, y=840)
 
 
 ############################ destroy buttons and labels ######
+# Remove temporary enrollment widgets from the screen.
 def reset():
     department.destroy()
     batch.destroy()
@@ -444,11 +468,13 @@ btn6.place(x=50, y=410)
 
 
 ########################## it focus the entry box when i press the arrow button #### 
+# Move keyboard focus to the previous entry widget when the Up arrow is pressed.
 def previous_widget(event):
         event.widget.tk_focusPrev().focus()
         return "break"
 root.bind_class("Entry", "<Up>",previous_widget)
 
+# Move keyboard focus to the next entry widget when the Down arrow is pressed.
 def next_widget(event):
         event.widget.tk_focusNext().focus()
         return "break"
